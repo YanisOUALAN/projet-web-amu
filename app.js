@@ -4,9 +4,12 @@ const axios = require('axios');
 
 const clientId = process.env.CLIENT_ID;
 const accessToken = process.env.ACCESS_TOKEN;
-
+const app = express();
+app.use(express.json());
 
 var twitchAccess;
+
+
 
 async function getTwitchAccessToken() {
     const endpoint = "https://id.twitch.tv/oauth2/token";
@@ -56,7 +59,26 @@ async function getTwitchAccessToken() {
       console.error('Error searching games by name:', error.message);
     }
   }
-  searchGamesByName('the witcher');
+
+  app.get('/search-by-name', async (req, res) => {
+    const query = req.query.query;
+    console.log("query : ", req.query.query);
+    res.send(JSON.stringify(await searchGamesByName(query)));
+});
+
+app.get('/get-details', async (req, res) => {
+    res.send(await getGameDetailsById(req.query.id));
+});
+
+function getGameDetailsById(gameId){
+    const endpoint = "https://api.igdb.com/v4/games/"+gameId;
+    return axios.get(endpoint)
+    .then(response => {
+      // Process the successful response
+      const gameData = response.data;
+      console.log(gameData);
+    })
+}
   // Appelle la fonction pour obtenir le token
   twitchAccess = getTwitchAccessToken();
   console.log(twitchAccess);
@@ -85,3 +107,9 @@ const apiCall = async () => {
   
   apiCall();
 
+
+
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
