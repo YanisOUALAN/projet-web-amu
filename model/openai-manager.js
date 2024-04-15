@@ -62,9 +62,6 @@ async function getGameRecommandation(userGames, popularGames) {
   ];
   assistant.tools = tools;
   assistant.tool_choice = "auto";
-  console.log("assistant id : " , await assistant);
-  console.log(userGames[0]);
-  fs.writeFile("fqiohf", JSON.stringify(userGames));
     openai.beta.threads.messages.create(thread.id, {
     role:"user",
     content: JSON.stringify(userGames)
@@ -81,13 +78,7 @@ async function getGameRecommandation(userGames, popularGames) {
   );
 
 
-
-
-
-
-
-
-
+   
   if (run.status === 'completed') {
     const messages = await openai.beta.threads.messages.list(
       run.thread_id
@@ -96,13 +87,35 @@ async function getGameRecommandation(userGames, popularGames) {
       console.log(`${message.role} > ${message.content[0].text.value}`);
     }
   }else if(run.status ==='requires_action'){
+    let toolsOutput = [];
     if(await run.required_action.submit_tool_outputs.tool_calls[0].function.name === 'get_popular_games'){
-        
+        const output = igdbManager.fetchPopularGames();
+        toolsOutput.push({
+          tool_call_id: await run.required_action.submit_tool_outputs.tool_calls[0].id,
+          output: JSON.stringify(output)
+      });
     }
+    console.log("adding..")
+    await openai.beta.threads.runs.submitToolOutputs(
+      thread.id,
+      run.id,
+      { tool_outputs: await toolsOutput }
+  );
+
+  console.log("tools submited");
+
+  
   } else {
     console.log(run.status);
   }
-  
+  const messages = openai.beta.threads.messages.list(
+    run.thread_id
+  );
+  for (const message of await messages.data.reverse()) {
+    console.log(`${message.role} > ${message.content[0].text.value}`);
+  }
+  console.log(run.status);
+
 }
 
 
