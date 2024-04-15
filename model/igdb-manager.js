@@ -15,7 +15,7 @@ async function fetchPopularGames() {
                 'Authorization': `Bearer ${await twitchAccess}`
             },
             // Ici on demande les jeux les mieux notés ou très attendus
-            data: 'fields name, rating, genres.name, cover.url; sort rating desc; where rating_count > 100 & release_dates.date > 1661990400 & release_dates.date < 1693526400; limit 100;'
+            data: 'fields name, rating, genres.name, summary, cover.url; sort rating desc; where rating_count > 100 & release_dates.date > 1661990400 & release_dates.date < 1693526400; limit 10;'
         });
   
         return response.data;
