@@ -26,17 +26,19 @@ app.get('/get-details', async (req, res) => {
 // Utilisation de la fonction
 igdbManager.fetchPopularGames().then(games => {
   if (games) {
-      console.log('Jeux populaires:', JSON.stringify(games));
+      
   }
 });
   // Appelle la fonction pour obtenir le token
   twitchAccess = igdbManager.getTwitchAccessToken();
   console.log(twitchAccess);
-
-console.log(openaiManager.getGameRecommandation(igdbManager.getGameDetailsById(115), igdbManager.fetchPopularGames()));
+console.log(igdbManager.getGameDetailsById(115));
+async function gReco(){
+  openaiManager.getGameRecommandation(await igdbManager.getGameDetailsById(115), await igdbManager.fetchPopularGames());
+}
+gReco();
   igdbManager.apiCall();
 
-console.log(JSON.stringify(igdbManager.getGameDetailsById(115)))
 
 const PORT = 3000;
 app.listen(PORT, () => {

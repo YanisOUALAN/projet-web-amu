@@ -4,12 +4,11 @@ Each response should include the game ID, name, genre, and a brief description. 
 
 Example Input:
 {
-  "user_id": 123,
-  "played_games": [
     {"id": 1, "name": "Game A", "genres": ["Adventure", "Puzzle"]},
     {"id": 2, "name": "Game B", "genres": ["Strategy", "Simulation"]}
-  ]
 }
+
+use functions to retrieve popular games...
 Expected Output:
 {
   "recommendations": [

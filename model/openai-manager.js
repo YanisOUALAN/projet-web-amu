@@ -63,10 +63,14 @@ async function getGameRecommandation(userGames, popularGames) {
   assistant.tools = tools;
   assistant.tool_choice = "auto";
   console.log("assistant id : " , await assistant);
-  const message = await openai.beta.threads.messages.create(thread.id, {
-    role: "user",
-    content: JSON.stringify(userGames),
+  console.log(userGames[0]);
+  fs.writeFile("fqiohf", JSON.stringify(userGames));
+    openai.beta.threads.messages.create(thread.id, {
+    role:"user",
+    content: JSON.stringify(userGames)
   });
+  
+  
   let run = await openai.beta.threads.runs.createAndPoll(
     thread.id,
     { 
@@ -75,16 +79,25 @@ async function getGameRecommandation(userGames, popularGames) {
       tools: tools
     }
   );
-  openai.beta.threads.messages.create(thread.id, {
-    role:"user",
-    content: JSON.stringify(userGames)
-  });
+
+
+
+
+
+
+
+
+
   if (run.status === 'completed') {
     const messages = await openai.beta.threads.messages.list(
       run.thread_id
     );
     for (const message of messages.data.reverse()) {
       console.log(`${message.role} > ${message.content[0].text.value}`);
+    }
+  }else if(run.status ==='requires_action'){
+    if(await run.required_action.submit_tool_outputs.tool_calls[0].function.name === 'get_popular_games'){
+        
     }
   } else {
     console.log(run.status);
