@@ -1,29 +1,47 @@
 require('dotenv').config();
 const axios = require('axios');
-
+const fs = require('fs').promises;
 const clientId = process.env.CLIENT_ID;
 const accessToken = process.env.ACCESS_TOKEN;
 var twitchAccess = getTwitchAccessToken();
-async function fetchPopularGames() {
-    try {
-        const response = await axios({
-            url: 'https://api.igdb.com/v4/games',
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Client-ID': clientId,
-                'Authorization': `Bearer ${await twitchAccess}`
-            },
-            // Ici on demande les jeux les mieux notés ou très attendus
-            data: 'fields name, rating, genres.name, summary, cover.url; sort rating desc; where rating_count > 100 & release_dates.date > 1661990400 & release_dates.date < 1693526400; limit 10;'
-        });
-  
-        return response.data;
-    } catch (error) {
-        console.error('Erreur lors de la récupération des jeux populaires:', error);
-        return null;
-    }
+async function fetchPopularGames(gameCount) {
+  const filePath = "./cache/recommendations/popular.json";
+
+  try {
+      // Vérifie si le fichier existe
+      await fs.stat(filePath);
+      // Si le fichier existe, lit et retourne son contenu
+      const data = await fs.readFile(filePath, { encoding: 'utf8' });
+      return JSON.parse(data).slice(0,gameCount);
+  } catch (err) {
+      // Si le fichier n'existe pas ou une autre erreur survient
+      if (err.code === 'ENOENT') {
+          console.log("Fichier non trouvé, récupération depuis l'API.");
+      } else {
+          console.error("Erreur lors de la vérification du fichier:", err);
+      }
+
+      try {
+          const response = await axios({
+              url: 'https://api.igdb.com/v4/games',
+              method: 'POST',
+              headers: {
+                  'Accept': 'application/json',
+                  'Client-ID': clientId,
+                  'Authorization': `Bearer ${await twitchAccess}`
+              },
+              data: `fields name, rating, genres.name, summary, cover.url; sort rating desc; where rating_count > 100 & release_dates.date > 1661990400 & release_dates.date < 1693526400; limit ${gameCount ?? 50};`
+          });
+
+          // Écrit les données fraîches dans le fichier pour la mise en cache
+          await fs.writeFile(filePath, JSON.stringify(response.data));
+          return response.data;
+      } catch (error) {
+          console.error('Erreur lors de la récupération des jeux populaires:', error);
+          return null;
+      }
   }
+}
 
   const apiCall = async () => {
     const endpoint = 'https://api.igdb.com/v4/games';
@@ -48,6 +66,17 @@ async function fetchPopularGames() {
     }
   };
 
+  async function resolveGamesFromId(gamesId){
+    let games = [];
+    for(let id of gamesId){
+        let gameDetails = await getGameDetailsById(id);
+        if (gameDetails.length > 0) { // Supposant que getGameDetailsById retourne un tableau
+            games.push(gameDetails[0]); // Ajouter seulement le premier élément du tableau retourné
+        }
+    }
+    return games;
+}
+
 
   async function getGameDetailsById(gameId){
     const endpoint = "https://api.igdb.com/v4/games/"+gameId;
@@ -60,7 +89,7 @@ async function fetchPopularGames() {
           'Client-ID': clientId,
           'Authorization': `Bearer ${await twitchAccess}`
       },
-      data: `fields name, summary, genres.name, platforms.name, release_dates.date; where id = ${gameId};`
+      data: `fields name, summary, genres.name, cover.url, platforms.name, release_dates.date; where id = ${gameId};`
   })
   .then(response => {
     console.log(response.data);
@@ -101,7 +130,7 @@ async function getTwitchAccessToken() {
       return;
     }
   
-    const data = `fields name, cover.url, platforms.name, genres.name; search "${gameName}"; limit 10;`;
+    const data = `fields name, cover.url, rating, platforms.name, genres.name; search "${gameName}"; limit 25;`;
   
     try {
       const response = await axios({
@@ -116,11 +145,11 @@ async function getTwitchAccessToken() {
         data
       });
   
-      console.log(response.data);
+      console.log("sr : " , JSON.stringify(response.data));
       return response.data;
     } catch (error) {
       console.error('Error searching games by name:', error.message);
     }
   }
 
-module.exports = {searchGamesByName, getTwitchAccessToken, getGameDetailsById, apiCall, fetchPopularGames};
+module.exports = {searchGamesByName, resolveGamesFromId, getTwitchAccessToken, getGameDetailsById, apiCall, fetchPopularGames};

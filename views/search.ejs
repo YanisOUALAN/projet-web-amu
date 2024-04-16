@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello, <%= username %>!</title>
+    <link rel="stylesheet" href="/css/index.css" />
+  </head>
+
+  <body>
+    <header>
+      <h2 id="title">Games</h2>
+      <a href="/search">Search</a>
+      <a href="/">Home</a>
+      <% if (isLoggedIn) { %>
+      <h1>Welcome, <%= username %> ! <a href="/logout"> logout</a></h1>
+      <% } else { %>
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+      <% } %>
+    </header>
+    <div id="search-area">
+      <form action="/search-by-name" method="POST">
+        <label for="query">Query :</label>
+        <input type="text" id="query" name="query" required />
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </body>
+</html>

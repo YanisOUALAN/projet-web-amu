@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello, <%= username %>!</title>
+    <link rel="stylesheet" href="/css/index.css" />
+  </head>
+
+  <body>
+    <header>
+      <h2 id="title">Games</h2>
+      <a href="/search">Search</a>
+      <a href="/">Home</a>
+      <% if (isLoggedIn) { %>
+      <h1>Welcome, <%= username %> ! <a href="/logout"> logout</a></h1>
+      <% } else { %>
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+      <% } %>
+    </header>
+    <div id="search-area">
+      <form action="/search-by-name" method="POST">
+        <label for="query">Query :</label>
+        <input type="text" id="query" name="query" required />
+        <button type="submit">Search</button>
+      </form>
+      <h2>Search result for : <%= query %></h2>
+      <% hits.forEach(game => { %>
+      <div class="card">
+        <a href="/game-info/<%= game.id %>"><%= game.name %></a>
+        <img src="<%= game.cover.url %>" alt="Image de <%= game.name %>" />
+        <!-- Utilise game.name pour 'alt', car 'game.title' n'est pas défini -->
+        <div class="genres">
+          <% if (game.genres) { %> <% game.genres.forEach(genre => { %>
+          <p><%= genre.name %></p>
+          <% }); %> <% } %>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+  </body>
+</html>

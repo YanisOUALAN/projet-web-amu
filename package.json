@@ -11,9 +11,13 @@
   "dependencies": {
     "apicalypse": "^0.2.0",
     "axios": "^1.6.8",
+    "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
-    "openai": "^4.33.1"
+    "express-session": "^1.18.0",
+    "openai": "^4.33.1",
+    "sqlite3": "^5.1.7",
+    "ws": "^8.16.0"
   }
 }

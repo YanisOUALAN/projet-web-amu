@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello, <%= username %>!</title>
+    <link rel="stylesheet" href="/css/index.css" />
+  </head>
+
+  <body>
+    <header>
+      <h2 id="title">Games</h2>
+      <a href="/search">Search</a>
+      <a href="/">Home</a>
+      <% if (isLoggedIn) { %>
+      <h1>Welcome, <%= username %> ! <a href="/logout"> logout</a></h1>
+      <% } else { %>
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+      <% } %>
+    </header>
+    <div id="for-you" class="game-section">
+      <% if (isLoggedIn) { %>
+      <h1 class="game-section-title">These games are in your playlist :</h1>
+      <% } %> <% for(let game of playlist) { %>
+      <div class="card">
+        <a href="/game-info/<%= game.id %>"><%= game.name %></a>
+        <img src="<%= game.cover.url %>" alt="Image de <%= game.title %>" />
+        <div class="genres">
+          <% for(let genre of game.genres) { %>
+          <p><%= genre.name %></p>
+          <% } %>
+        </div>
+      </div>
+
+      <% } %>
+    </div>
+  </body>
+</html>

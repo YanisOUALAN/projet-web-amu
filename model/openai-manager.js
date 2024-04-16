@@ -7,7 +7,7 @@ const assistant = openai.beta.assistants.retrieve(
   "asst_RLsCfsBD8AKcd5j8ywtZjf1O"
 );
 
-async function getGameRecommandation(userGames, popularGames) {
+async function getGameRecommandation(userGames, popularGames, gameCount) {
     await assistant;
     const thread = await openai.beta.threads.create();
     
@@ -72,7 +72,7 @@ async function getGameRecommandation(userGames, popularGames) {
     thread.id,
     { 
       assistant_id: "asst_RLsCfsBD8AKcd5j8ywtZjf1O",
-      instructions: await fs.readFile("./assistantdirectives", "utf-8"),
+      instructions: await fs.readFile("./assistantdirectives" , "utf-8") + " You need to recommend " + gameCount + " games",
       tools: tools
     }
   );
@@ -89,33 +89,43 @@ async function getGameRecommandation(userGames, popularGames) {
   }else if(run.status ==='requires_action'){
     let toolsOutput = [];
     if(await run.required_action.submit_tool_outputs.tool_calls[0].function.name === 'get_popular_games'){
-        const output = igdbManager.fetchPopularGames();
+        const output = popularGames;
+        console.log("output : ", await output)
         toolsOutput.push({
           tool_call_id: await run.required_action.submit_tool_outputs.tool_calls[0].id,
-          output: JSON.stringify(output)
+          output: JSON.stringify(await output)
       });
     }
-    console.log("adding..")
-    await openai.beta.threads.runs.submitToolOutputs(
+    console.log("adding.. ", toolsOutput)
+    await openai.beta.threads.runs.submitToolOutputsAndPoll(
       thread.id,
       run.id,
       { tool_outputs: await toolsOutput }
   );
+  
 
   console.log("tools submited");
-
+  const messages = await openai.beta.threads.messages.list(
+    run.thread_id
+  );
+  for (const message of messages.data.reverse()) {
+    console.log(`${message.role} > ${message.content[0].text.value}`);
+    if(message.role === "assistant"){
+        try{
+            result = JSON.parse(message.content[0].text.value);
+            console.log("parsed ", result);
+            console.log("for toolsOuput : ", JSON.stringify(toolsOutput));
+            return result;
+        }catch(e){
+            console.log("did not parse ", message.content[0].text.value)
+        }
+    }
+  }
   
   } else {
     console.log(run.status);
   }
-  const messages = openai.beta.threads.messages.list(
-    run.thread_id
-  );
-  for (const message of await messages.data.reverse()) {
-    console.log(`${message.role} > ${message.content[0].text.value}`);
-  }
   console.log(run.status);
-
 }
 
 

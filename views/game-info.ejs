@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello, <%= username %>!</title>
+    <link rel="stylesheet" href="/css/index.css" />
+    <link rel="stylesheet" href="/css/game-info.css" />
+  </head>
+
+  <body>
+    <header>
+        <h2 id="title">Games</h2>
+        <a href="/search">Search</a>
+        <a href="/">Home</a>
+        <% if (isLoggedIn) { %>
+        <h1>Welcome, <%= username %> ! <a href="/logout"> logout</a></h1>
+        <% } else { %>
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+        <% } %>
+      </header>
+    <div id="game-presentation">
+      <h2 id="game-title"><%= game.name %></h2>
+      <img src="<%= game.cover.url %>" alt="Image de <%= game.name %>" />
+      <div class="genres">
+        <% for(let genre of game.genres) { %>
+        <p><%= genre.name %></p>
+        <% } %>
+      </div>
+      <% if (isLoggedIn) { %>
+        <% if (isInPlaylist) { %>
+          <p id="isInPlaylist">This game is in your playlist !</p>
+          <form action="/remove-game-from-playlist/<%=game.id%>" method="POST">
+            <button type="submit">Remove it</button>
+          </form>
+        <% } else { %>
+        <form action="/add-game-to-playlist/<%=game.id%>" method="POST">
+          <button type="submit">Add to playlist</button>
+        </form>
+        <% } %>
+      <% } %>
+      <p id="game-summary"><%=game.summary%></p>
+
+
+  </body>
+</html>
